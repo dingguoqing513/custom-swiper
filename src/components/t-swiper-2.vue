@@ -9,10 +9,10 @@
           left: `${offsetLeft}px`,
         }"
       >
-        <li class="swiper-wrap-li" v-for="opt in swiperImgs" :key="opt.id">
+        <li class="swiper-wrap-li" v-for="(opt, i) in swiperImgs" :key="opt.id">
           <img :src="opt.img_url" />
           <div class="swiper-content">
-            <p v-for="opt in swiperContent" :key="opt">{{ opt }}</p>
+            <p v-for="opt in swiperContent[i]" :key="opt">{{ opt }}</p>
           </div>
         </li>
       </ul>
@@ -24,11 +24,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import { fetchAllJson } from "../api/swiper";
 import { getAssetsPath } from "../utils/util";
 
-const swiperImgs = [
+const swiperImgs = reactive([
   {
     id: 1,
     img_url: getAssetsPath("1.jpg"),
@@ -41,7 +41,7 @@ const swiperImgs = [
     id: 3,
     img_url: getAssetsPath("3.jpg"),
   },
-];
+]);
 
 const activeIndex = ref(0); // 当前图像索引
 
@@ -60,19 +60,28 @@ const triggerOffset = () => {
 };
 
 const changeImg = (num: number) => {
-  if (activeIndex.value <= 0 && num === -1) return alert("当前是第一张");
-  if (activeIndex.value >= 2 && num === 1) return alert("当前是最后一张");
   activeIndex.value += num;
+  if (activeIndex.value < 0) {
+    activeIndex.value = swiperImgs.length - 1;
+  }
+  if (activeIndex.value >= swiperImgs.length) {
+    activeIndex.value = 0;
+  }
   triggerOffset();
 };
 
-const getAllJson = async () => {
-  let result = await fetchAllJson();
-  const data = Object.values(result);
-  if (data.length) {
-    swiperContent.value = data;
-  }
+const getAllJson = () => {
+  let item: any = ref([]);
+  swiperImgs.forEach(async () => {
+    let result = await fetchAllJson();
+    const data = Object.values(result);
+    if (data.length) {
+      item.value.push(data);
+    }
+  });
+  swiperContent.value = item.value;
 };
+
 getAllJson();
 
 const autoPlay = () => {
@@ -120,17 +129,25 @@ const closeLoop = () => {
         width: 500px;
         height: 300px;
         list-style: none;
-        .swiper-content {
-          position: absolute;
-          .box-center();
-          color: #fff;
-        }
+        position: relative;
         img {
           width: 500px;
           height: 300px;
         }
       }
     }
+  }
+  .swiper-content {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
   }
 
   .operate {
