@@ -2,7 +2,7 @@ import axios from "axios";
 import type { AxiosInstance, AxiosResponse, AxiosError } from "axios";
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: "http://v1.jinrishici.com",
+  baseURL: "https://v1.jinrishici.com",
 });
 
 // request config
